@@ -35,15 +35,15 @@ public class TelemetryRepository : ITelemetryRepository
         return telemetryLog;
     }
 
-    public async Task<TelemetryLog> UpdateAsync(TelemetryLog telemetryLog, CancellationToken cancellationToken)
+    public async Task<TelemetryLog?> UpdateAsync(TelemetryLog telemetryLog, CancellationToken cancellationToken)
     {
-        var existing = _context.TelemetryLogs
-            .FirstOrDefaultAsync(r => telemetryLog.Id == telemetryLog.Id, cancellationToken);
+        var existing = await _context.TelemetryLogs
+            .FirstOrDefaultAsync(t => t.Id == telemetryLog.Id, cancellationToken);
 
-        if(existing == null)
-        {
-            return null;
-        }
+        if (existing is null) return null;
+
+        existing.Timestamp = telemetryLog.Timestamp;
+        existing.HealthScore = telemetryLog.HealthScore;
 
         await _context.SaveChangesAsync(cancellationToken);
         return telemetryLog;

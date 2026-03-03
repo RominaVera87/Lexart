@@ -43,6 +43,8 @@ public class AssetRepository : IAssetRepository
 
         existing.Name = asset.Name;
         existing.Type = asset.Type;
+        await _context.SaveChangesAsync(cancellationToken);
+
         return existing;
     }
 
