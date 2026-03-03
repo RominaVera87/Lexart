@@ -1,6 +1,6 @@
 ﻿namespace Assets.Domain.Enums;
 
-public enum SensorStatusStatus
+public enum AlertLevel
 {
     Ok = 0,
     Warning = 1,

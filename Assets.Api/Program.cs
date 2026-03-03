@@ -1,4 +1,6 @@
+using Assets.Application.Interfaces;
 using Assets.Infrastructure.Persistence;
+using Assets.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +12,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AssetsDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IAssetRepository, AssetRepository>();
 
 var app = builder.Build();
 
