@@ -1,0 +1,19 @@
+{
+  "runtime": "Net90",
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "assets-api.yaml"
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpClient": {
+      "className": "IgnoreClient",
+      "namespace": "Assets.Contracts",
+      "generateClientClasses": false,
+      "generateClientInterfaces": false,
+      "generateDtoTypes": true,
+      "generateOptionalParameters": true,
+      "output": "Assets.Contracts/Generated/ApiModels.g.cs"
+    }
+  }
+}

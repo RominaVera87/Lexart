@@ -1,0 +1,21 @@
+{
+  "runtime": "Net90",
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "assets-api.yaml"
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpController": {
+      "namespace": "Assets.Api.Controllers.Generated",
+      "controllerBaseClass": "Microsoft.AspNetCore.Mvc.ControllerBase",
+      "controllerStyle": "Partial",
+      "useActionResultType": true,
+      "generateDtoTypes": false,
+      "additionalNamespaceUsages": [
+        "Assets.Contracts"
+      ],
+      "output": "Assets.Api/Controllers/Generated/ApiControllers.g.cs"
+    }
+  }
+}
