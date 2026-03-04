@@ -1,21 +1,50 @@
-# AI Strategy
+# AI_STRATEGY
 
-## Tools Used
+## 1. Tools used
 
-ChatGPT (OpenAI)
+- ChatGPT: used to validate the OpenAPI contract, reason about Clean Architecture boundaries, and troubleshoot Docker / EF Core / P/Invoke issues.
+- GitHub Copilot: used for small code completions and repetitive boilerplate while implementing repositories/controllers.
 
-## How I Used AI
+## 2. Prompt log (examples)
 
-I used AI to help structure the OpenAPI specification and to double-check REST consistency.  
-It was especially helpful to validate HTTP status codes and ensure all CRUD operations were correctly defined, including nested telemetry routes.
+### OpenAPI / REST validation
 
-## Example Prompts
+Prompt:
+"Review this OpenAPI spec and check REST consistency, status codes (200/201/204/400/401/403/404/409/500), naming conventions and schema alignment."
 
-- "Review this OpenAPI YAML and check for missing or inconsistent HTTP status codes."
-- "Does this REST structure look correct for nested resources?"
+Outcome:
+Helped refine the contract before generating code.
 
-## Reflection
+### NSwag generation
 
-AI helped speed up validation and catch small inconsistencies in the API design.  
-However, the overall structure, modeling decisions, and final adjustments were reviewed and refined manually.
-    
+Prompt:
+"Given this assets-api.yaml, how do I generate DTOs and controllers for a .NET Web API using NSwag?"
+
+Outcome:
+Configured generation and connected generated contracts to the implementation.
+
+### Docker + SQL Server (Linux containers)
+
+Prompt:
+"Provide a docker-compose setup for SQL Server in a Linux container and a .NET API container, and explain how connection strings should differ between running locally vs inside Docker."
+
+Outcome:
+Unblocked networking and environment configuration.
+
+### P/Invoke + native C library
+
+Prompt:
+"Show a minimal ANSI C shared library and the corresponding .NET P/Invoke signature, including how to load a .so inside a Linux Docker container."
+
+Outcome:
+Implemented the native Health Score library and integrated it with the backend.
+
+## 3. Efficiency & quality
+
+AI helped reduce time spent searching documentation and trial-and-error, especially for Docker networking, NSwag wiring, and P/Invoke details.
+
+Quality was ensured by:
+
+- compiling and running the solution end-to-end (API + DB + native library) using Docker,
+- verifying the OpenAPI contract via Swagger,
+- testing key endpoints (CRUD, telemetry flow, and /api/native/healthscore).
