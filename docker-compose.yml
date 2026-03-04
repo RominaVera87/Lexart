@@ -24,5 +24,14 @@ services:
       ASPNETCORE_URLS: "http://+:8080"
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=LexartDb;User Id=sa;Password=Lexart2026!;TrustServerCertificate=True;Encrypt=False"
 
+  ui:
+    build:
+      context: .
+      dockerfile: Assets.Ui/Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
 volumes:
   sqlserver_data:
