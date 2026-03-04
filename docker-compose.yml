@@ -10,5 +10,19 @@ services:
     volumes:
       - sqlserver_data:/var/opt/mssql
 
+  api:
+    build:
+      context: .
+      dockerfile: Assets.Api/Dockerfile
+    container_name: lexart-api
+    depends_on:
+      - sqlserver
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=LexartDb;User Id=sa;Password=Lexart2026!;TrustServerCertificate=True;Encrypt=False"
+
 volumes:
   sqlserver_data:

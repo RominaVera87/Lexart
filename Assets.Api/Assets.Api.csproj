@@ -27,4 +27,11 @@
     <Folder Include="Middleware\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="native/libhealthscore.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+
 </Project>
