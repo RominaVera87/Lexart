@@ -1,0 +1,19 @@
+{
+  "runtime": "Net90",
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "../assets-api.yaml"
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpClient": {
+      "className": "AssetsApiClient",
+      "namespace": "Assets.ApiClient.Generated",
+      "generateClientInterfaces": true,
+      "injectHttpClient": true,
+      "disposeHttpClient": false,
+      "generateNullableReferenceTypes": true,
+      "output": "Generated/AssetsApiClient.cs"
+    }
+  }
+}
