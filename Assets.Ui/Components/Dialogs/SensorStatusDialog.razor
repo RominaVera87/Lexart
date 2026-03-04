@@ -125,6 +125,10 @@
 
             status = await AssetService.GetSensorStatusAsync(AssetId);
         }
+        catch (ApiException ex) when (ex.StatusCode == 404)
+        {
+            error = "No telemetry data available for this asset.";
+        }
         catch (Exception ex)
         {
             error = $"Failed to load sensor status: {ex.Message}";
