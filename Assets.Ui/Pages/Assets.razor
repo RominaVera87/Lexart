@@ -1,0 +1,266 @@
+@page "/assets"
+@using global::Assets.ApiClient.Generated
+@using MudBlazor
+@using global::Assets.Ui.Components.Dialogs
+@inject IAssetsApiClient AssetService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager Nav
+
+<MudPaper Class="mx-auto my-6 pa-4" Style="max-width:1000px;min-height:calc(90vh - 150px);">
+
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+        <MudText Typo="Typo.h4">Assets</MudText>
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   Title="Create asset"
+                   Style="border-radius:999px;color:white"
+                   OnClick="CreateAsset">
+            Add
+        </MudButton>
+    </MudStack>
+
+    <MudTable Items="assets ?? Array.Empty<Asset>()"
+              Hover="true"
+              Dense="true"
+              SortLabel="Sort by"
+              FixedHeader="true"
+              Height="calc(100vh - 220px)">
+
+        <HeaderContent>
+
+            <MudTh Style="font-weight:600;opacity:0.9">
+                <MudTableSortLabel SortBy="new Func<Asset, object>(x => x.Name ?? string.Empty)">
+                    Name
+                </MudTableSortLabel>
+            </MudTh>
+
+            <MudTh Style="font-weight:600;opacity:0.9">
+                <MudTableSortLabel SortBy="new Func<Asset, object>(x => x.Type ?? string.Empty)">
+                    Type
+                </MudTableSortLabel>
+            </MudTh>
+
+        </HeaderContent>
+
+        <RowTemplate>
+
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+
+            <MudTd DataLabel="Type">@context.Type</MudTd>
+
+            <MudTd Align="Align.Right" Style="white-space:nowrap;width:210px">
+
+                <MudStack Row="true" Justify="Justify.FlexEnd" AlignItems="AlignItems.Center" Spacing="1">
+
+                    <MudIconButton Icon="@Icons.Material.Filled.Info"
+                                   Color="Color.Default"
+                                   Size="Size.Small"
+                                   Title="Details"
+                                   OnClick="@(() => ViewDetails(context.Id))" />
+
+                    <MudIconButton Icon="@Icons.Material.Filled.Sensors"
+                                   Color="Color.Info"
+                                   Size="Size.Small"
+                                   Title="Sensor status"
+                                   OnClick="@(() => OpenSensorStatus(context.Id))" />
+
+                    <MudIconButton Icon="@Icons.Material.Filled.Timeline"
+                                   Color="Color.Info"
+                                   Size="Size.Small"
+                                   Title="Telemetry"
+                                   OnClick="@(() => ShowTelemtries(context.Id))" />
+
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Primary"
+                                   Size="Size.Small"
+                                   Title="Edit"
+                                   OnClick="@(() => EditAsset(context.Id))" />
+
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Error"
+                                   Size="Size.Small"
+                                   Title="Delete"
+                                   Disabled="@isDeleting"
+                                   OnClick="@(() => DeleteAsset(context.Id))" />
+
+                </MudStack>
+
+            </MudTd>
+
+        </RowTemplate>
+
+        <NoRecordsContent>
+
+            @if (assets is null)
+            {
+                <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-6">
+                    <MudProgressCircular Indeterminate="true" />
+                    <MudText Class="mt-2">Loading...</MudText>
+                </MudStack>
+            }
+            else
+            {
+                <MudText Class="py-6">No assets found.</MudText>
+            }
+
+        </NoRecordsContent>
+
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+        </PagerContent>
+
+    </MudTable>
+
+</MudPaper>
+
+@code {
+    private ICollection<Asset>? assets;
+    private bool isDeleting;
+
+    protected override async Task OnInitializedAsync()
+    {
+        assets = await AssetService.ListAssetsAsync();
+    }
+
+    private void ShowTelemtries(Guid assetId)
+    {
+        Nav.NavigateTo($"/assets/{assetId}/telemetry");
+    }
+
+    private async Task ViewDetails(Guid id)
+    {
+        var asset = assets?.FirstOrDefault(x => x.Id == id);
+        if (asset is null) return;
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var parameters = new DialogParameters
+        {
+            { "AssetModel", asset }
+        };
+
+        await DialogService.ShowAsync<AssetDetailsDialog>("Asset Details", parameters, options);
+    }
+
+    private async Task CreateAsset()
+    {
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<AssetFormDialog>("Create Asset", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            assets = await AssetService.ListAssetsAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task EditAsset(Guid id)
+    {
+        var asset = assets?.FirstOrDefault(x => x.Id == id);
+        if (asset is null) return;
+
+        var parameters = new DialogParameters
+        {
+            { "AssetModel", asset },
+            { "IsEdit", true }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<AssetFormDialog>("Modify Asset", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            assets = await AssetService.ListAssetsAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteAsset(Guid id)
+    {
+        var parameters = new DialogParameters
+    {
+        { "ContentText", "Are you sure you want to delete this asset?" },
+        { "ButtonText", "Delete" },
+        { "Color", Color.Error }
+    };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Delete Asset", parameters);
+        var result = await dialog.Result;
+
+        if (result.Canceled) return;
+
+        try
+        {
+            isDeleting = true;
+
+            await AssetService.DeleteAssetAsync(id);
+
+            var removed = assets?.FirstOrDefault(a => a.Id == id);
+            if (removed is not null)
+                assets!.Remove(removed);
+
+            Snackbar.Add("Asset deleted.", Severity.Success);
+        }
+        catch (ApiException apiEx)
+        {
+            if (apiEx.StatusCode == 200)
+            {
+                var removed = assets?.FirstOrDefault(a => a.Id == id);
+                if (removed is not null)
+                    assets!.Remove(removed);
+
+                Snackbar.Add("Asset deleted.", Severity.Success);
+                return;
+            }
+
+            Snackbar.Add($"Failed to delete asset: {apiEx.Message}", Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to delete asset: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+
+    private async Task OpenSensorStatus(Guid assetId)
+    {
+        var parameters = new DialogParameters
+    {
+        { "AssetId", assetId }
+    };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        await DialogService.ShowAsync<SensorStatusDialog>("Sensor Status", parameters, options);
+    }
+}

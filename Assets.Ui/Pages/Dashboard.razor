@@ -1,0 +1,278 @@
+﻿@page "/"
+@using global::Assets.ApiClient.Generated
+@using MudBlazor
+@inject IAssetsApiClient AssetService
+@inject ISnackbar Snackbar
+
+<MudPaper Class="mx-auto my-6 pa-4" Style="max-width:1100px;min-height:calc(90vh - 150px);">
+
+    <MudStack Row="false" RowSmAndUp="true"
+              Justify="Justify.SpaceBetween"
+              AlignItems="AlignItems.Center"
+              Class="mb-4" Spacing="2">
+        <MudText Typo="Typo.h4">Dashboard</MudText>
+
+        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                       Color="Color.Primary"
+                       Title="Refresh"
+                       Disabled="@isLoading"
+                       OnClick="ReloadAsync" />
+    </MudStack>
+
+    @if (isLoading)
+    {
+        <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-10">
+            <MudProgressCircular Indeterminate="true" />
+            <MudText Class="mt-2">Loading...</MudText>
+        </MudStack>
+    }
+    else
+    {
+        <MudGrid Class="mb-4">
+
+            <MudItem xs="12" sm="4">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@Icons.Material.Filled.Inventory2" Size="Size.Large" />
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Style="opacity:0.8">Total assets</MudText>
+                            <MudText Typo="Typo.h5">@totalAssets</MudText>
+                        </div>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Success" />
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Style="opacity:0.8">Healthy assets</MudText>
+                            <MudText Typo="Typo.h5">@activeAssets</MudText>
+                            <MudText Typo="Typo.caption" Style="opacity:0.7">
+                                Based on latest health score ≥ @ProblemThreshold
+                            </MudText>
+                        </div>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <MudIcon Icon="@Icons.Material.Filled.Error" Size="Size.Large" Color="Color.Error" />
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Style="opacity:0.8">Assets with issues</MudText>
+                            <MudText Typo="Typo.h5">@problemAssets</MudText>
+                            <MudText Typo="Typo.caption" Style="opacity:0.7">
+                                Based on latest health score &lt; @ProblemThreshold
+                            </MudText>
+                        </div>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+        </MudGrid>
+
+        <MudGrid>
+
+            <MudItem xs="12" md="7">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-2">
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.Timeline" Class="mr-2" />
+                            Latest telemetry logs
+                        </MudText>
+
+                        <MudText Typo="Typo.caption" Style="opacity:0.7">
+                            Last @LatestCount logs across all assets
+                        </MudText>
+                    </MudStack>
+
+                    <MudTable Items="latestLogs"
+                              Dense="true"
+                              Hover="true"
+                              FixedHeader="true"
+                              Height="360px"
+                              Breakpoint="Breakpoint.Sm">
+
+                        <HeaderContent>
+                            <MudTh Style="font-weight:600;opacity:0.9">Asset</MudTh>
+                            <MudTh Style="font-weight:600;opacity:0.9">Timestamp</MudTh>
+                            <MudTh Style="font-weight:600;opacity:0.9">Health</MudTh>
+                        </HeaderContent>
+
+                        <RowTemplate>
+                            <MudTd DataLabel="Asset">@context.AssetName</MudTd>
+                            <MudTd DataLabel="Timestamp">@context.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</MudTd>
+                            <MudTd DataLabel="Health">
+                                <MudChip T="int"
+                                         Size="Size.Small"
+                                         Color="@GetHealthColor(context.HealthScore)"
+                                         Variant="Variant.Filled">
+                                    @context.HealthScore
+                                </MudChip>
+                            </MudTd>
+                        </RowTemplate>
+
+                        <NoRecordsContent>
+                            <MudText Class="py-6">No telemetry logs found.</MudText>
+                        </NoRecordsContent>
+
+                    </MudTable>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="5">
+                <MudPaper Class="pa-4" Elevation="1">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+                        <MudIcon Icon="@Icons.Material.Filled.BuildCircle" Class="mr-2" Color="Color.Warning" />
+                        <MudText Typo="Typo.h6">Maintenance alerts</MudText>
+                    </MudStack>
+
+                    <MudList T="MaintenanceAlertRow" Dense="true">
+                        @if (maintenanceAlerts.Count == 0)
+                        {
+                            <MudListItem T="MaintenanceAlertRow">
+                                <MudText Style="opacity:0.8">No alerts.</MudText>
+                            </MudListItem>
+                        }
+                        else
+                        {
+                            @foreach (var alert in maintenanceAlerts)
+                            {
+                                <MudListItem T="MaintenanceAlertRow">
+                                    <MudIcon Icon="@Icons.Material.Filled.WarningAmber" Color="Color.Warning" Class="mud-list-item-icon" />
+                                    <div class="mud-list-item-text">
+                                        <MudText Typo="Typo.subtitle2">@alert.AssetName</MudText>
+                                        <MudText Typo="Typo.caption" Style="opacity:0.75">@alert.Message</MudText>
+                                    </div>
+                                </MudListItem>
+                            }
+                        }
+                    </MudList>
+
+                    <MudDivider Class="my-3" />
+
+                    <MudText Typo="Typo.caption" Style="opacity:0.7">
+                        Rule: health score &lt; @MaintenanceThreshold OR last telemetry older than @StaleDays days
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+        </MudGrid>
+    }
+
+</MudPaper>
+
+@code {
+    private const int LatestCount = 8;
+
+    private const int ProblemThreshold = 70;
+    private const int MaintenanceThreshold = 50;
+    private const int StaleDays = 7;
+
+    private bool isLoading = true;
+
+    private int totalAssets;
+    private int activeAssets;
+    private int problemAssets;
+
+    private List<LatestTelemetryRow> latestLogs = new();
+    private List<MaintenanceAlertRow> maintenanceAlerts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            var assets = await AssetService.ListAssetsAsync();
+            totalAssets = assets?.Count ?? 0;
+
+            var latestPerAsset = new List<(Asset asset, TelemetryLog? latestLog)>();
+            var allLogs = new List<(Asset asset, TelemetryLog log)>();
+
+            foreach (var a in assets ?? Array.Empty<Asset>())
+            {
+                var logs = await AssetService.ListTelemetryLogsAsync(a.Id, null, null);
+
+                var latest = logs?
+                    .OrderByDescending(x => x.Timestamp)
+                    .FirstOrDefault();
+
+                latestPerAsset.Add((a, latest));
+
+                if (logs is not null)
+                {
+                    foreach (var l in logs)
+                        allLogs.Add((a, l));
+                }
+            }
+
+            activeAssets = latestPerAsset.Count(x => x.latestLog is not null && x.latestLog.HealthScore >= ProblemThreshold);
+            problemAssets = latestPerAsset.Count(x => x.latestLog is not null && x.latestLog.HealthScore < ProblemThreshold);
+
+            latestLogs = allLogs
+                .OrderByDescending(x => x.log.Timestamp)
+                .Take(LatestCount)
+                .Select(x => new LatestTelemetryRow(
+                    AssetName: x.asset.Name,
+                    Timestamp: x.log.Timestamp,
+                    HealthScore: x.log.HealthScore
+                ))
+                .ToList();
+
+            var nowUtc = DateTimeOffset.UtcNow;
+
+            maintenanceAlerts = latestPerAsset
+                .Select(x =>
+                {
+                    var name = x.asset.Name;
+
+                    if (x.latestLog is null)
+                        return new MaintenanceAlertRow(name, "No telemetry logs yet.");
+
+                    var latestUtc = x.latestLog.Timestamp.ToUniversalTime();
+                    var ageDays = (nowUtc - latestUtc).TotalDays;
+
+                    if (x.latestLog.HealthScore < MaintenanceThreshold)
+                        return new MaintenanceAlertRow(name, $"Low health score: {x.latestLog.HealthScore}.");
+
+                    if (ageDays >= StaleDays)
+                        return new MaintenanceAlertRow(name, $"Telemetry is stale: last log {Math.Floor(ageDays)} days ago.");
+
+                    return null;
+                })
+                .Where(x => x is not null)
+                .Cast<MaintenanceAlertRow>()
+                .Take(10)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load dashboard: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private static Color GetHealthColor(int healthScore)
+    {
+        if (healthScore >= 85) return Color.Success;
+        if (healthScore >= 70) return Color.Info;
+        if (healthScore >= 50) return Color.Warning;
+        return Color.Error;
+    }
+
+    private record LatestTelemetryRow(string AssetName, DateTimeOffset Timestamp, int HealthScore);
+    private record MaintenanceAlertRow(string AssetName, string Message);
+}

@@ -1,0 +1,157 @@
+﻿@using MudBlazor
+@using global::Assets.ApiClient.Generated
+@inject IAssetsApiClient AssetService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Sensors" Color="Color.Info" />
+            <MudText Typo="Typo.h6">Sensor Status</MudText>
+        </MudStack>
+    </TitleContent>
+
+    <DialogContent>
+
+        @if (isLoading)
+        {
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-6">
+                <MudProgressCircular Indeterminate="true" />
+                <MudText Class="mt-2">Loading...</MudText>
+            </MudStack>
+        }
+        else if (!string.IsNullOrWhiteSpace(error))
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Filled">@error</MudAlert>
+        }
+        else if (status is null)
+        {
+            <MudText>No data.</MudText>
+        }
+        else
+        {
+            <MudStack Spacing="2">
+
+                <MudGrid AlignItems="AlignItems.Center">
+                    <MudItem xs="1">
+                        <MudIcon Icon="@Icons.Material.Filled.Fingerprint" Color="Color.Primary" />
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudText>AssetId:</MudText>
+                    </MudItem>
+                    <MudItem xs="7">
+                        <MudText Style="word-break:break-all">@status.AssetId</MudText>
+                    </MudItem>
+                </MudGrid>
+
+                <MudGrid AlignItems="AlignItems.Center">
+                    <MudItem xs="1">
+                        <MudIcon Icon="@Icons.Material.Filled.HealthAndSafety" Color="Color.Primary" />
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudText>Overall Health Score:</MudText>
+                    </MudItem>
+                    <MudItem xs="7">
+                        <MudChip T="int"
+                                 Color="@GetHealthColor(status.HealthScore)"
+                                 Variant="Variant.Filled">
+                            @status.HealthScore
+                        </MudChip>
+                    </MudItem>
+                </MudGrid>
+
+                <MudGrid AlignItems="AlignItems.Center">
+                    <MudItem xs="1">
+                        <MudIcon Icon="@Icons.Material.Filled.Schedule" Color="Color.Primary" />
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudText>Last Telemetry:</MudText>
+                    </MudItem>
+                    <MudItem xs="7">
+                        <MudText>@status.LastTelemetryAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</MudText>
+                    </MudItem>
+                </MudGrid>
+
+                <MudGrid AlignItems="AlignItems.Center">
+                    <MudItem xs="1">
+                        <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Primary" />
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudText>Status:</MudText>
+                    </MudItem>
+                    <MudItem xs="7">
+                        <MudChip T="SensorStatusStatus"
+                                 Color="@GetStatusColor(status.Status)"
+                                 Variant="Variant.Filled">
+                            @status.Status
+                        </MudChip>
+                    </MudItem>
+                </MudGrid>
+
+            </MudStack>
+        }
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Close">
+            Close
+        </MudButton>
+    </DialogActions>
+
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public Guid AssetId { get; set; }
+
+    private bool isLoading = true;
+    private string? error;
+    private SensorStatus? status;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            isLoading = true;
+            error = null;
+
+            status = await AssetService.GetSensorStatusAsync(AssetId);
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to load sensor status: {ex.Message}";
+            Snackbar.Add(error, Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private static Color GetHealthColor(int score)
+    {
+        if (score >= 85) return Color.Success;
+        if (score >= 70) return Color.Info;
+        if (score >= 50) return Color.Warning;
+        return Color.Error;
+    }
+
+    private static Color GetStatusColor(SensorStatusStatus s) => s switch
+    {
+        SensorStatusStatus.Ok => Color.Success,
+        SensorStatusStatus.Warning => Color.Warning,
+        SensorStatusStatus.Critical => Color.Error,
+        _ => Color.Default
+    };
+
+    private void Close() => MudDialog.Close();
+}

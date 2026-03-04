@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assets.Infrastructure", "As
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assets.Ui", "Assets.Ui\Assets.Ui.csproj", "{677B3EBB-CBF1-9B2F-CD2F-96713A217C43}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assets.ApiClient", "Assets.ApiClient\Assets.ApiClient.csproj", "{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +99,18 @@ Global
 		{677B3EBB-CBF1-9B2F-CD2F-96713A217C43}.Release|x64.Build.0 = Release|Any CPU
 		{677B3EBB-CBF1-9B2F-CD2F-96713A217C43}.Release|x86.ActiveCfg = Release|Any CPU
 		{677B3EBB-CBF1-9B2F-CD2F-96713A217C43}.Release|x86.Build.0 = Release|Any CPU
+		{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}.Debug|x64.Build.0 = Debug|Any CPU
+		{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}.Debug|x86.Build.0 = Debug|Any CPU
+		{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}.Release|x64.ActiveCfg = Release|Any CPU
+		{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}.Release|x64.Build.0 = Release|Any CPU
+		{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}.Release|x86.ActiveCfg = Release|Any CPU
+		{E7F32B95-42D8-4FC4-83CA-D0817B969C6F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
